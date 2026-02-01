@@ -110,7 +110,7 @@ g.report.part2 = function(metadatadir = c(), f0 = c(), f1 = c(),
         }
       } else if (mon == "actigraph" | mon == "axivity" | mon == "verisense") {
         deviceSerialNumber = "not extracted"
-      } else if (I$monc %in% c(5, 7, 94, 96, 97, 98, 99)) { #movisense 5, parmay matrix 7, Actiwatch 98, Sensewear 99
+      } else if (I$monc %in% c(5, 7, 93, 94, 96, 97, 98, 99)) { #movisense 5, parmay matrix 7, PIM 93, Actical 94, Fitbit 96, PHB 97, Sensewear 98, Actiwatch 99
         deviceSerialNumber = "not extracted"
       } else if (I$monc == 0) {
         if (header != "no header") {
