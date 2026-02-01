@@ -213,6 +213,28 @@ test_that("External epoch data is correctly converted", {
   
   # Tidy up by deleting output folder
   if (file.exists(outputdir)) unlink(outputdir, recursive = TRUE)
-  
-  
+
+  # PIM CSV
+  cat("\nPIM CSV")
+  move2folder(system.file("testfiles/pim_testfile.csv", package = "GGIR")[1], dn)
+  params_general = load_params()$params_general
+  params_general[["windowsizes"]][1] = 15
+  params_general[["windowsizes"]][2] = 60
+  params_general[["windowsizes"]][3] = 120
+  params_general[["dataFormat"]] = "pim_csv"
+  params_general[["extEpochData_timeformat"]] = "%d/%m/%Y %H:%M:%S"
+  convertEpochData(datadir = dn, metadatadir = "./output_tmp_testdata",
+                   params_general = params_general)
+  if (dir.exists(dn))  unlink(dn, recursive = TRUE)
+  load(paste0(QCbasis, "/meta_pim_testfile.csv.RData"))
+  expect_equal(nrow(M$metashort), 120)
+  expect_equal(ncol(M$metashort), 2)
+  expect_true(all(c("timestamp", "ExtAct") %in% colnames(M$metashort)))
+  # Check that nonwear detection works (there's a stretch of zeros in the test data)
+  expect_true(sum(M$metalong$nonwearscore) > 0)
+
+  # Tidy up by deleting output folder
+  if (file.exists(outputdir)) unlink(outputdir, recursive = TRUE)
+
+
 })

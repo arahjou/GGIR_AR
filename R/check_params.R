@@ -502,7 +502,7 @@ check_params = function(params_sleep = c(), params_metrics = c(),
   }
   
   if (length(params_metrics) > 0 & length(params_general) > 0) {
-    if (params_general[["dataFormat"]] %in% c("actiwatch_awd", "actiwatch_csv", "phb_xlsx")) {
+    if (params_general[["dataFormat"]] %in% c("actiwatch_awd", "actiwatch_csv", "phb_xlsx", "pim_csv")) {
       params_metrics[["do.enmo"]] = params_metrics[["do.anglez"]] = FALSE
       params_metrics[["do.anglex"]] = params_metrics[["do.angley"]] = FALSE
       params_metrics[["do.anglez"]] = params_metrics[["do.enmoa"]] = FALSE

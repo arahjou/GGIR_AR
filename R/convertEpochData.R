@@ -141,6 +141,12 @@ convertEpochData = function(datadir = c(), metadatadir = c(),
     monc = 94
     dformc = 94
     epSizeShort = 0 # extract from file header
+  } else if (params_general[["dataFormat"]] == "pim_csv") {
+    deviceName = "PIM_Device"
+    monn = "pim"
+    monc = 93
+    dformc = 93
+    epSizeShort = 0 # extract from file
   }
   sf = NA
   dformn = params_general[["dataFormat"]]
@@ -316,7 +322,29 @@ convertEpochData = function(datadir = c(), metadatadir = c(),
                                        configtz = params_general[["configtz"]],
                                        timeformatName = "extEpochData_timeformat")
         # Rename to align with GGIR metric naming
-        colnames(D$data)[which(colnames(D$data) == "counts")] = "ExtAct" 
+        colnames(D$data)[which(colnames(D$data) == "counts")] = "ExtAct"
+      } else if (params_general[["dataFormat"]] == "pim_csv") {
+        # Read CSV with Timestamp and PIM columns
+        D = data.table::fread(input = fnames[i], header = TRUE, data.table = FALSE)
+        # Identify timestamp column (first column or column named timestamp/time)
+        ts_col = 1
+        ts_col_name = grep(pattern = "^time", x = tolower(colnames(D)), value = FALSE)
+        if (length(ts_col_name) > 0) ts_col = ts_col_name[1]
+        # Parse timestamp
+        timestamp_POSIX = as.POSIXct(D[, ts_col],
+                                      format = params_general[["extEpochData_timeformat"]],
+                                      tz = params_general[["desiredtz"]])
+        # Calculate epoch size from data
+        epochSize = as.numeric(difftime(timestamp_POSIX[2], timestamp_POSIX[1], units = "secs"))
+        epSizeShort = epochSize
+        # Rename PIM to ExtAct (case-insensitive search)
+        pim_col = grep(pattern = "^pim$", x = tolower(colnames(D)), value = FALSE)
+        if (length(pim_col) > 0) {
+          colnames(D)[pim_col[1]] = "ExtAct"
+        }
+        # Remove timestamp column from D (it's handled separately)
+        D = D[, -ts_col, drop = FALSE]
+        D = list(data = D, epochSize = epSizeShort, startTime = timestamp_POSIX[1])
       } else if (length(grep(pattern = "actiwatch", x = params_general[["dataFormat"]], ignore.case = TRUE)) > 0) {
         D = GGIRread::readActiwatchCount(filename = fnames[i], 
                                          timeformat = params_general[["extEpochData_timeformat"]],
@@ -464,7 +492,7 @@ convertEpochData = function(datadir = c(), metadatadir = c(),
                                            tz = tz)
       # File formats with possibly more than 1 column
       morethan1 = c("actigraph_csv", "sensewear_xls", "actiwatch_awd",
-                    "actiwatch_csv", "phb_xlsx", "actical_csv", "fitbit_json") #, "
+                    "actiwatch_csv", "phb_xlsx", "actical_csv", "fitbit_json", "pim_csv") #, "
       if (params_general[["dataFormat"]] %in% morethan1 == FALSE) {
         M$metashort = data.frame(timestamp = time_shortEp_8601,
                                  ExtAct = D[1:length(time_shortEp_8601),1],stringsAsFactors = FALSE)
